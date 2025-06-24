@@ -24,6 +24,33 @@
         backdrop-filter: blur(10px);
       }
 
+      .connector-explanation {
+      margin: 35px auto 0 auto;
+      max-width: 900px;
+      background: rgba(240, 248, 255, 0.93);
+      border-radius: 15px;
+      padding: 18px 22px;
+      border: 2px solid #d0d5e0;
+      font-size: 1rem;
+      color: #233;
+      box-shadow: 0 2px 12px rgba(100,100,130,0.05);
+}
+
+.connector-explanation h2 {
+  margin-top: 0;
+  font-size: 1.4rem;
+  color: #3498db;
+}
+
+.connector-explanation ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.connector-explanation li {
+  margin-bottom: 7px;
+}
+
       h1 {
         text-align: center;
         color: #2c3e50;
@@ -354,6 +381,24 @@
         </div>
       </div>
 
+      <div class="connector-explanation">
+        <h2>Explicação dos principais sinais</h2>
+          <ul>
+            <li><strong>PRSNT1#, PRSNT2#</strong>: Detectam a presença do cartão na placa-mãe.</li>
+            <li><strong>+12V, +3.3V, +3.3V aux</strong>: Pinos de alimentação elétrica.</li>
+            <li><strong>Ground (GND)</strong>: Referência de terra (0V).</li>
+            <li><strong>REFCLK+, REFCLK−</strong>: Sinais de clock diferencial usados para temporização dos dados (sincronização).</li>
+            <li><strong>HSOp(n), HSOn(n), HSIp(n), HSIn(n)</strong>: Pistas diferenciais de transmissão (HSO) e recepção (HSI) de dados. O número (n) indica a pista correspondente.</li>
+            <li><strong>TCK, TDI, TDO, TMS, TRST#</strong>: Sinais do barramento JTAG, usados para teste e depuração.</li>
+            <li><strong>SMCLK, SMDAT</strong>: Sinais do barramento SMBus para comunicação com dispositivos de gerenciamento.</li>
+            <li><strong>PERST#</strong>: Reset do dispositivo PCI Express.</li>
+            <li><strong>WAKE#</strong>: Sinal para acordar o dispositivo do estado de baixo consumo.</li>
+            <li><strong>CLKREQ#</strong>: Solicitação de clock adicional.</li>
+            <li><strong>PWRBRK#</strong>: Interrupção de energia (power break).</li>
+            <li><strong>Reservado</strong>: Pinos sem uso definido.</li>
+        </ul>
+      </div>
+      
       <div class="legend">
         <div class="legend-item">
           <div class="legend-color pin-power"></div>
