@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama Interativo PCI Express</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .connector-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .connector {
+            position: relative;
+            background: #2c3e50;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            border: 3px solid #34495e;
+        }
+        
+        .connector-row {
+            display: flex;
+            margin: 5px 0;
+            gap: 2px;
+        }
+        
+        .pin {
+            width: 8px;
+            height: 20px;
+            border: 1px solid #2c3e50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 8px;
+            text-align: center;
+            line-height: 20px;
+            font-weight: bold;
+        }
+        
+        .pin:hover {
+            transform: scale(1.3);
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        
+        /* Cores dos pinos por função */
+        .pin-power { background: #e74c3c; color: white; }
+        .pin-ground { background: #34495e; color: white; }
+        .pin-data { background: #3498db; color: white; }
+        .pin-clock { background: #f39c12; color: white; }
+        .pin-control { background: #9b59b6; color: white; }
+        .pin-reserved { background: #95a5a6; color: white; }
+        .pin-presence { background: #e67e22; color: white; }
+        
+        .key-notch {
+            width: 20px;
+            height: 42px;
+            background: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            margin: 0 5px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border: 2px solid #3498db;
+            backdrop-filter: blur(5px);
+            display: none;
+        }
+        
+        .tooltip h4 {
+            margin: 0 0 8px 0;
+            color: #3498db;
+            font-size: 14px;
+        }
+        
+        .tooltip p {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+        
+        .variant-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .variant-btn {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .variant-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .variant-btn.active {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            transform: translateY(-2px);
+        }
+        
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            border: 2px solid #ecf0f1;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #2c3e50;
+        }
+        
+        .pin-number {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            color: #ecf0f1;
+            font-weight: bold;
+        }
+        
+        .side-label {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ecf0f1;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .connector-info {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #ecf0f1;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Diagrama Interativo PCI Express</h1>
+        
+        <div class="variant-selector">
+            <button class="variant-btn active" onclick="showVariant('x1')">PCI Express x1</button>
+            <button class="variant-btn" onclick="showVariant('x4')">PCI Express x4</button>
+            <button class="variant-btn" onclick="showVariant('x8')">PCI Express x8</button>
+            <button class="variant-btn" onclick="showVariant('x16')">PCI Express x16</button>
+        </div>
+        
+        <div class="connector-container">
+            <div id="connector" class="connector">
+                <div class="connector-info">
+                    <div id="variant-title">PCI Express x1 (18 pinos)</div>
+                </div>
+                <div class="side-label">Lado A</div>
+                <div class="connector-row" id="side-a"></div>
+                <div class="key-notch">CHAVE</div>
+                <div class="connector-row" id="side-b"></div>
+                <div class="side-label" style="top: 80%;">Lado B</div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color pin-power"></div>
+                <span><strong>Alimentação:</strong> +3.3V, +12V</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color pin-ground"></div>
+                <span><strong>Terra (GND):</strong> Referência 0V</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color pin-data"></div>
+                <span><strong>Dados:</strong> Pistas de transmissão/recepção</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color pin-clock"></div>
+                <span><strong>Clock:</strong> Sinais de temporização</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color pin-control"></div>
+                <span><strong>Controle:</strong> SMBus, JTAG, Wake, Reset</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color pin-presence"></div>
+                <span><strong>Presença:</strong> Detecção de placa</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color pin-reserved"></div>
+                <span><strong>Reservado:</strong> Não utilizado</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+
+    <script>
+        const pinData = {
+            1: {sideA: "PRSNT1#", sideB: "+12 V", desc: "Pino de presença (Lado A) e alimentação +12V (Lado B). PRSNT1# deve conectar ao PRSNT2# mais distante", type: "presence"},
+            2: {sideA: "+12 V", sideB: "+12 V", desc: "Pinos de alimentação principal +12V para ambos os lados", type: "power"},
+            3: {sideA: "+12 V", sideB: "+12 V", desc: "Pinos de alimentação principal +12V para ambos os lados", type: "power"},
+            4: {sideA: "Ground", sideB: "Ground", desc: "Pinos de terra (GND) - referência zero volt", type: "ground"},
+            5: {sideA: "TCK", sideB: "SMCLK", desc: "TCK (JTAG Test Clock) e SMCLK (SMBus Clock)", type: "control"},
+            6: {sideA: "TDI", sideB: "SMDAT", desc: "TDI (JTAG Test Data In) e SMDAT (SMBus Data)", type: "control"},
+            7: {sideA: "TDO", sideB: "Ground", desc: "TDO (JTAG Test Data Out) e Ground", type: "control"},
+            8: {sideA: "TMS", sideB: "+3.3 V", desc: "TMS (JTAG Test Mode Select) e alimentação +3.3V", type: "control"},
+            9: {sideA: "+3.3 V", sideB: "TRST#", desc: "Alimentação +3.3V e TRST# (JTAG Test Reset)", type: "power"},
+            10: {sideA: "+3.3 V", sideB: "+3.3 V aux", desc: "+3.3V normal e +3.3V auxiliar (stand by)", type: "power"},
+            11: {sideA: "PERST#", sideB: "WAKE#", desc: "PERST# (Reset fundamental) e WAKE# (Reativação de links)", type: "control"},
+            12: {sideA: "Ground", sideB: "CLKREQ#", desc: "Ground e CLKREQ# (Sinal de solicitação de clock)", type: "clock"},
+            13: {sideA: "REFCLK+", sideB: "Ground", desc: "REFCLK+ (Clock de referência diferencial positivo)", type: "clock"},
+            14: {sideA: "REFCLK−", sideB: "HSOp(0)", desc: "REFCLK− (Clock de referência diferencial negativo) e HSOp(0) (Pista 0 TX+)", type: "data"},
+            15: {sideA: "Ground", sideB: "HSOn(0)", desc: "Ground e HSOn(0) (Pista 0 transmite dados, sinal negativo)", type: "data"},
+            16: {sideA: "HSIp(0)", sideB: "Ground", desc: "HSIp(0) (Pista 0 recebe dados, sinal positivo)", type: "data"},
+            17: {sideA: "HSIn(0)", sideB: "PRSNT2#", desc: "HSIn(0) (Pista 0 recebe dados, sinal negativo) e PRSNT2#", type: "data"},
+            18: {sideA: "Ground", sideB: "Ground", desc: "Pinos de terra. Placas PCI Express x1 terminam no pino 18", type: "ground"},
+            19: {sideA: "Reservado", sideB: "HSOp(1)", desc: "Pino reservado e HSOp(1) (Pista 1 transmite dados, sinal positivo)", type: "data"},
+            20: {sideA: "Ground", sideB: "HSOn(1)", desc: "Ground e HSOn(1) (Pista 1 transmite dados, sinal negativo)", type: "data"},
+            21: {sideA: "HSIp(1)", sideB: "Ground", desc: "HSIp(1) (Pista 1 recebe dados, sinal positivo)", type: "data"},
+            22: {sideA: "HSIn(1)", sideB: "Ground", desc: "HSIn(1) (Pista 1 recebe dados, sinal negativo)", type: "data"},
+            23: {sideA: "Ground", sideB: "HSOp(2)", desc: "Ground e HSOp(2) (Pista 2 transmite dados, sinal positivo)", type: "data"},
+            24: {sideA: "Ground", sideB: "HSOn(2)", desc: "Ground e HSOn(2) (Pista 2 transmite dados, sinal negativo)", type: "data"},
+            25: {sideA: "HSIp(2)", sideB: "Ground", desc: "HSIp(2) (Pista 2 recebe dados, sinal positivo)", type: "data"},
+            26: {sideA: "HSIn(2)", sideB: "Ground", desc: "HSIn(2) (Pista 2 recebe dados, sinal negativo)", type: "data"},
+            27: {sideA: "Ground", sideB: "HSOp(3)", desc: "Ground e HSOp(3) (Pista 3 transmite dados, sinal positivo)", type: "data"},
+            28: {sideA: "Ground", sideB: "HSOn(3)", desc: "Ground e HSOn(3) (Pista 3 transmite dados, sinal negativo)", type: "data"},
+            29: {sideA: "HSIp(3)", sideB: "Ground", desc: "HSIp(3) (Pista 3 recebe dados, sinal positivo)", type: "data"},
+            30: {sideA: "HSIn(3)", sideB: "PWRBRK#", desc: "HSIn(3) (Pista 3 recebe dados, sinal negativo) e PWRBRK#", type: "data"},
+            31: {sideA: "Ground", sideB: "PRSNT2#", desc: "Ground e PRSNT2# (Detecção de presença)", type: "presence"},
+            32: {sideA: "Reservado", sideB: "Ground", desc: "Pino reservado e Ground. Placas PCI Express x4 terminam no pino 32", type: "reserved"},
+            33: {sideA: "Reservado", sideB: "HSOp(4)", desc: "Pino reservado e HSOp(4) (Pista 4 transmite dados, sinal positivo)", type: "data"},
+            34: {sideA: "Ground", sideB: "HSOn(4)", desc: "Ground e HSOn(4) (Pista 4 transmite dados, sinal negativo)", type: "data"},
+            35: {sideA: "HSIp(4)", sideB: "Ground", desc: "HSIp(4) (Pista 4 recebe dados, sinal positivo)", type: "data"},
+            36: {sideA: "HSIn(4)", sideB: "Ground", desc: "HSIn(4) (Pista 4 recebe dados, sinal negativo)", type: "data"},
+            37: {sideA: "Ground", sideB: "HSOp(5)", desc: "Ground e HSOp(5) (Pista 5 transmite dados, sinal positivo)", type: "data"},
+            38: {sideA: "Ground", sideB: "HSOn(5)", desc: "Ground e HSOn(5) (Pista 5 transmite dados, sinal negativo)", type: "data"},
+            39: {sideA: "HSIp(5)", sideB: "Ground", desc: "HSIp(5) (Pista 5 recebe dados, sinal positivo)", type: "data"},
+            40: {sideA: "HSIn(5)", sideB: "Ground", desc: "HSIn(5) (Pista 5 recebe dados, sinal negativo)", type: "data"},
+            41: {sideA: "Ground", sideB: "HSOp(6)", desc: "Ground e HSOp(6) (Pista 6 transmite dados, sinal positivo)", type: "data"},
+            42: {sideA: "Ground", sideB: "HSOn(6)", desc: "Ground e HSOn(6) (Pista 6 transmite dados, sinal negativo)", type: "data"},
+            43: {sideA: "HSIp(6)", sideB: "Ground", desc: "HSIp(6) (Pista 6 recebe dados, sinal positivo)", type: "data"},
+            44: {sideA: "HSIn(6)", sideB: "Ground", desc: "HSIn(6) (Pista 6 recebe dados, sinal negativo)", type: "data"},
+            45: {sideA: "Ground", sideB: "HSOp(7)", desc: "Ground e HSOp(7) (Pista 7 transmite dados, sinal positivo)", type: "data"},
+            46: {sideA: "Ground", sideB: "HSOn(7)", desc: "Ground e HSOn(7) (Pista 7 transmite dados, sinal negativo)", type: "data"},
+            47: {sideA: "HSIp(7)", sideB: "Ground", desc: "HSIp(7) (Pista 7 recebe dados, sinal positivo)", type: "data"},
+            48: {sideA: "HSIn(7)", sideB: "PRSNT2#", desc: "HSIn(7) (Pista 7 recebe dados, sinal negativo) e PRSNT2#", type: "data"},
+            49: {sideA: "Ground", sideB: "Ground", desc: "Pinos de terra. Placas PCI Express x8 terminam no pino 49", type: "ground"},
+            50: {sideA: "Reservado", sideB: "HSOp(8)", desc: "Pino reservado e HSOp(8) (Pista 8 transmite dados, sinal positivo)", type: "data"},
+            51: {sideA: "Ground", sideB: "HSOn(8)", desc: "Ground e HSOn(8) (Pista 8 transmite dados, sinal negativo)", type: "data"},
+            52: {sideA: "HSIp(8)", sideB: "Ground", desc: "HSIp(8) (Pista 8 recebe dados, sinal positivo)", type: "data"},
+            53: {sideA: "HSIn(8)", sideB: "Ground", desc: "HSIn(8) (Pista 8 recebe dados, sinal negativo)", type: "data"},
+            54: {sideA: "Ground", sideB: "HSOp(9)", desc: "Ground e HSOp(9) (Pista 9 transmite dados, sinal positivo)", type: "data"},
+            55: {sideA: "Ground", sideB: "HSOn(9)", desc: "Ground e HSOn(9) (Pista 9 transmite dados, sinal negativo)", type: "data"},
+            56: {sideA: "HSIp(9)", sideB: "Ground", desc: "HSIp(9) (Pista 9 recebe dados, sinal positivo)", type: "data"},
+            57: {sideA: "HSIn(9)", sideB: "Ground", desc: "HSIn(9) (Pista 9 recebe dados, sinal negativo)", type: "data"},
+            58: {sideA: "Ground", sideB: "HSOp(10)", desc: "Ground e HSOp(10) (Pista 10 transmite dados, sinal positivo)", type: "data"},
+            59: {sideA: "Ground", sideB: "HSOn(10)", desc: "Ground e HSOn(10) (Pista 10 transmite dados, sinal negativo)", type: "data"},
+            60: {sideA: "HSIp(10)", sideB: "Ground", desc: "HSIp(10) (Pista 10 recebe dados, sinal positivo)", type: "data"},
+            61: {sideA: "HSIn(10)", sideB: "Ground", desc: "HSIn(10) (Pista 10 recebe dados, sinal negativo)", type: "data"},
+            62: {sideA: "Ground", sideB: "HSOp(11)", desc: "Ground e HSOp(11) (Pista 11 transmite dados, sinal positivo)", type: "data"},
+            63: {sideA: "Ground", sideB: "HSOn(11)", desc: "Ground e HSOn(11) (Pista 11 transmite dados, sinal negativo)", type: "data"},
+            64: {sideA: "HSIp(11)", sideB: "Ground", desc: "HSIp(11) (Pista 11 recebe dados, sinal positivo)", type: "data"},
+            65: {sideA: "HSIn(11)", sideB: "Ground", desc: "HSIn(11) (Pista 11 recebe dados, sinal negativo)", type: "data"},
+            66: {sideA: "Ground", sideB: "HSOp(12)", desc: "Ground e HSOp(12) (Pista 12 transmite dados, sinal positivo)", type: "data"},
+            67: {sideA: "Ground", sideB: "HSOn(12)", desc: "Ground e HSOn(12) (Pista 12 transmite dados, sinal negativo)", type: "data"},
+            68: {sideA: "HSIp(12)", sideB: "Ground", desc: "HSIp(12) (Pista 12 recebe dados, sinal positivo)", type: "data"},
+            69: {sideA: "HSIn(12)", sideB: "Ground", desc: "HSIn(12) (Pista 12 recebe dados, sinal negativo)", type: "data"},
+            70: {sideA: "Ground", sideB: "HSOp(13)", desc: "Ground e HSOp(13) (Pista 13 transmite dados, sinal positivo)", type: "data"},
+            71: {sideA: "Ground", sideB: "HSOn(13)", desc: "Ground e HSOn(13) (Pista 13 transmite dados, sinal negativo)", type: "data"},
+            72: {sideA: "HSIp(13)", sideB: "Ground", desc: "HSIp(13) (Pista 13 recebe dados, sinal positivo)", type: "data"},
+            73: {sideA: "HSIn(13)", sideB: "Ground", desc: "HSIn(13) (Pista 13 recebe dados, sinal negativo)", type: "data"},
+            74: {sideA: "Ground", sideB: "HSOp(14)", desc: "Ground e HSOp(14) (Pista 14 transmite dados, sinal positivo)", type: "data"},
+            75: {sideA: "Ground", sideB: "HSOn(14)", desc: "Ground e HSOn(14) (Pista 14 transmite dados, sinal negativo)", type: "data"},
+            76: {sideA: "HSIp(14)", sideB: "Ground", desc: "HSIp(14) (Pista 14 recebe dados, sinal positivo)", type: "data"},
+            77: {sideA: "HSIn(14)", sideB: "Ground", desc: "HSIn(14) (Pista 14 recebe dados, sinal negativo)", type: "data"},
+            78: {sideA: "Ground", sideB: "HSOp(15)", desc: "Ground e HSOp(15) (Pista 15 transmite dados, sinal positivo)", type: "data"},
+            79: {sideA: "Ground", sideB: "HSOn(15)", desc: "Ground e HSOn(15) (Pista 15 transmite dados, sinal negativo)", type: "data"},
+            80: {sideA: "HSIp(15)", sideB: "Ground", desc: "HSIp(15) (Pista 15 recebe dados, sinal positivo)", type: "data"},
+            81: {sideA: "HSIn(15)", sideB: "PRSNT2#", desc: "HSIn(15) (Pista 15 recebe dados, sinal negativo) e PRSNT2#", type: "data"},
+            82: {sideA: "Ground", sideB: "Reservado", desc: "Ground e pino reservado (não utilizado)", type: "reserved"}
+        };
+
+        const variants = {
+            x1: {pins: 18, title: "PCI Express x1 (18 pinos)"},
+            x4: {pins: 32, title: "PCI Express x4 (32 pinos)"},
+            x8: {pins: 49, title: "PCI Express x8 (49 pinos)"},
+            x16: {pins: 82, title: "PCI Express x16 (82 pinos)"}
+        };
+
+        let currentVariant = 'x1';
+        const tooltip = document.getElementById('tooltip');
+
+        function getPinClass(type) {
+            const typeMap = {
+                'power': 'pin-power',
+                'ground': 'pin-ground',
+                'data': 'pin-data',
+                'clock': 'pin-clock',
+                'control': 'pin-control',
+                'reserved': 'pin-reserved',
+                'presence': 'pin-presence'
+            };
+            return typeMap[type] || 'pin-reserved';
+        }
+
+        function createPin(pinNum, side) {
+            const pin = document.createElement('div');
+            pin.className = 'pin';
+            pin.dataset.pin = pinNum;
+            pin.dataset.side = side;
+            
+            const data = pinData[pinNum];
+            if (data) {
+                const pinClass = getPinClass(data.type);
+                pin.classList.add(pinClass);
+                pin.textContent = pinNum;
+                
+                const pinNumber = document.createElement('div');
+                pinNumber.className = 'pin-number';
+                pinNumber.textContent = pinNum;
+                pin.appendChild(pinNumber);
+            }
+            
+            pin.addEventListener('mouseenter', showTooltip);
+            pin.addEventListener('mouseleave', hideTooltip);
+            
+            return pin;
+        }
+
+        function showTooltip(e) {
+            const pin = e.target;
+            const pinNum = parseInt(pin.dataset.pin);
+            const side = pin.dataset.side;
+            const data = pinData[pinNum];
+            
+            if (!data) return;
+            
+            const sideValue = side === 'a' ? data.sideA : data.sideB;
+            const oppositeSide = side === 'a' ? 'B' : 'A';
+            const oppositeValue = side === 'a' ? data.sideB : data.sideA;
+            
+            tooltip.innerHTML = `
+                <h4>📍 Pino ${pinNum} - Lado ${side.toUpperCase()}</h4>
+                <p><strong>Sinal:</strong> ${sideValue}</p>
+                <p><strong>Lado ${oppositeSide}:</strong> ${oppositeValue}</p>
+                <p><strong>Função:</strong> ${data.desc}</p>
+                <p><strong>Tipo:</strong> ${data.type.charAt(0).toUpperCase() + data.type.slice(1)}</p>
+            `;
+            
+            const rect = pin.getBoundingClientRect();
+            tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+            tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
+            tooltip.style.display = 'block';
+        }
+
+        function hideTooltip() {
+            tooltip.style.display = 'none';
+        }
+
+        function renderConnector() {
+            const sideA = document.getElementById('side-a');
+            const sideB = document.getElementById('side-b');
+            const maxPins = variants[currentVariant].pins;
+            
+            sideA.innerHTML = '';
+            sideB.innerHTML = '';
+            
+            for (let i = 1; i <= maxPins; i++) {
+                const pinA = createPin(i, 'a');
+                const pinB = createPin(i, 'b');
+                sideA.appendChild(pinA);
+                sideB.appendChild(pinB);
+            }
+            
+            document.getElementById('variant-title').textContent = variants[currentVariant].title;
+        }
+
+        function showVariant(variant) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.variant-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            currentVariant = variant;
+            renderConnector();
+        }
+
+        // Initialize with x1 variant
+        renderConnector();
+
+        // Add smooth scrolling animation when switching variants
+        function animateVariantChange() {
+            const connector = document.getElementById('connector');
+            connector.style.opacity = '0.7';
+            connector.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                connector.style.opacity = '1';
+                connector.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Update showVariant to include animation
+        const originalShowVariant = showVariant;
+        showVariant = function(variant) {
+            originalShowVariant(variant);
+            animateVariantChange();
+        };
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const variants = ['x1', 'x4', 'x8', 'x16'];
+            const currentIndex = variants.indexOf(currentVariant);
+            
+            if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                const prevVariant = variants[currentIndex - 1];
+                document.querySelector(`[onclick="showVariant('${prevVariant}')"]`).click();
+            } else if (e.key === 'ArrowRight' && currentIndex < variants.length - 1) {
+                const nextVariant = variants[currentIndex + 1];
+                document.querySelector(`[onclick="showVariant('${nextVariant}')"]`).click();
+            }
+        });
+
+        // Add touch/swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const variants = ['x1', 'x4', 'x8', 'x16'];
+            const currentIndex = variants.indexOf(currentVariant);
+            
+            if (touchEndX < touchStartX - swipeThreshold && currentIndex < variants.length - 1) {
+                // Swipe left - next variant
+                const nextVariant = variants[currentIndex + 1];
+                document.querySelector(`[onclick="showVariant('${nextVariant}')"]`).click();
+            }
+            
+            if (touchEndX > touchStartX + swipeThreshold && currentIndex > 0) {
+                // Swipe right - previous variant
+                const prevVariant = variants[currentIndex - 1];
+                document.querySelector(`[onclick="showVariant('${prevVariant}')"]`).click();
+            }
+        }
+
+        // Add pin search functionality
+        function addSearchBox() {
+            const searchContainer = document.createElement('div');
+            searchContainer.style.cssText = `
+                text-align: center;
+                margin: 20px 0;
+                padding: 15px;
+                background: rgba(255, 255, 255, 0.9);
+                border-radius: 15px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            `;
+            
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Buscar pino (ex: REFCLK, +12V, Ground)...';
+            searchInput.style.cssText = `
+                width: 300px;
+                padding: 12px 20px;
+                border: 2px solid #3498db;
+                border-radius: 25px;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s ease;
+            `;
+            
+            searchInput.addEventListener('focus', function() {
+                this.style.borderColor = '#2980b9';
+                this.style.boxShadow = '0 0 10px rgba(52, 152, 219, 0.3)';
+            });
+            
+            searchInput.addEventListener('blur', function() {
+                this.style.borderColor = '#3498db';
+                this.style.boxShadow = 'none';
+            });
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                highlightMatchingPins(searchTerm);
+            });
+            
+            searchContainer.appendChild(searchInput);
+            document.querySelector('.variant-selector').insertAdjacentElement('afterend', searchContainer);
+        }
+
+        function highlightMatchingPins(searchTerm) {
+            const pins = document.querySelectorAll('.pin');
+            pins.forEach(pin => {
+                const pinNum = parseInt(pin.dataset.pin);
+                const data = pinData[pinNum];
+                
+                if (data && searchTerm) {
+                    const matches = data.sideA.toLowerCase().includes(searchTerm) ||
+                                  data.sideB.toLowerCase().includes(searchTerm) ||
+                                  data.desc.toLowerCase().includes(searchTerm);
+                    
+                    if (matches) {
+                        pin.style.boxShadow = '0 0 15px #f39c12';
+                        pin.style.transform = 'scale(1.1)';
+                        pin.style.zIndex = '50';
+                    } else {
+                        pin.style.boxShadow = '';
+                        pin.style.transform = '';
+                        pin.style.zIndex = '';
+                    }
+                } else {
+                    pin.style.boxShadow = '';
+                    pin.style.transform = '';
+                    pin.style.zIndex = '';
+                }
+            });
+        }
+
+        // Initialize search box
+        addSearchBox();
+
+        // Add info panel
+        function addInfoPanel() {
+            const infoPanel = document.createElement('div');
+            infoPanel.style.cssText = `
+                margin-top: 30px;
+                padding: 20px;
+                background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(155, 89, 182, 0.1));
+                border-radius: 15px;
+                border: 2px solid rgba(52, 152, 219, 0.3);
+            `;
+            
+            infoPanel.innerHTML = `
+                <h3 style="color: #2c3e50; margin-bottom: 15px; text-align: center;">
+                    📋 Informações Técnicas PCI Express
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div style="background: rgba(255, 255, 255, 0.8); padding: 15px; border-radius: 10px;">
+                        <h4 style="color: #e74c3c; margin-bottom: 10px;">⚡ Alimentação</h4>
+                        <p style="margin: 5px 0;"><strong>+3.3V:</strong> Alimentação principal para lógica</p>
+                        <p style="margin: 5px 0;"><strong>+12V:</strong> Alimentação para componentes de alta potência</p>
+                        <p style="margin: 5px 0;"><strong>+3.3V aux:</strong> Alimentação stand-by</p>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.8); padding: 15px; border-radius: 10px;">
+                        <h4 style="color: #3498db; margin-bottom: 10px;">📡 Dados</h4>
+                        <p style="margin: 5px 0;"><strong>HSOp/HSOn:</strong> Transmissão diferencial</p>
+                        <p style="margin: 5px 0;"><strong>HSIp/HSIn:</strong> Recepção diferencial</p>
+                        <p style="margin: 5px 0;"><strong>Largura de banda:</strong> ~250 MB/s por pista</p>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.8); padding: 15px; border-radius: 10px;">
+                        <h4 style="color: #f39c12; margin-bottom: 10px;">🕐 Clock & Controle</h4>
+                        <p style="margin: 5px 0;"><strong>REFCLK±:</strong> Clock de referência 100MHz</p>
+                        <p style="margin: 5px 0;"><strong>PERST#:</strong> Reset da placa</p>
+                        <p style="margin: 5px 0;"><strong>WAKE#:</strong> Despertar do modo sleep</p>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 15px; font-size: 12px; color: #7f8c8d;">
+                    💡 <strong>Dica:</strong> Use as setas ← → do teclado para navegar entre variantes | Deslize no mobile | Busque pinos específicos
+                </div>
+            `;
+            
+            document.querySelector('.container').appendChild(infoPanel);
+        }
+
+        // Initialize info panel
+        addInfoPanel();
+    </script>
+</body>
+</html>
